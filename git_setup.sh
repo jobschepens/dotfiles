@@ -4,13 +4,16 @@ read full_name
 echo "Type in your email address (the one used for your GitHub account): "
 read email
 
-git config --global user.email "$email"
+# git config --global user.email "$email"
+git config --global user.email "@users.noreply.github.com"
 git config --global user.name "$full_name"
 
 git add .
 git commit --message "My identity for @lewagon in the gitconfig"
 git push origin master
 
-git remote add upstream git@github.com:lewagon/dotfiles.git
+# git remote add upstream git@github.com:lewagon/dotfiles.git
+git remote set-url origin git@github.com:jobschepens/dotfiles.git
+git push origin master
 
 echo "👌 Awesome, all set."
