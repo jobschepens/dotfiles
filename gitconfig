@@ -51,14 +51,14 @@
 [push]
   default = simple
 
-[branch "master"]
+[branch "main"]
   mergeoptions = --no-edit
 
 [pull]
-  rebase = false
+  rebase = true
 
 [init]
-  defaultBranch = master
+  defaultBranch = main
 [user]
 	email = @users.noreply.github.com
 	name = Job Schepens

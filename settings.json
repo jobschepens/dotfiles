@@ -35,7 +35,6 @@
         ".svn": true,
         "**/.DS_Store": true,
         "**/.egg-info": true,
-        "**/.git": true,
         "build": true,
         "coverage": true,
         "dist": true,
@@ -56,23 +55,19 @@
         "**/tmp/**": true,
         "**/vendor/**": true
     },
-    "git.enabled": false,
+    "git.enabled": true,
     "notebook.diff.ignoreMetadata": true,
     "notebook.lineNumbers": "on",
     "notebook.markup.fontSize": 13,
     "python.defaultInterpreterPath": "~/.pyenv/shims/python",
-    "python.formatting.provider": "yapf",
     "python.languageServer": "Pylance",
-    "python.linting.enabled": false,
-    "python.linting.flake8Enabled": false,
-    "python.linting.pylintEnabled": false,
     "python.terminal.activateEnvironment": false,
     "ruby.lint": {
         "rubocop": true
     },
     "search.exclude": {
-      // Inherits all glob patterns from the `files.exclude` setting.
-      "**/.venv": true
+        // Inherits all glob patterns from the `files.exclude` setting.
+        "**/.venv": true
     },
     "telemetry.telemetryLevel": "off",
     "window.restoreWindows": "none",
@@ -83,5 +78,5 @@
     "workbench.settings.openDefaultSettings": true,
     "workbench.settings.useSplitJSON": true,
     "workbench.startupEditor": "newUntitledFile",
-    "workbench.panel.defaultLocation": "right",
+    "workbench.panel.defaultLocation": "right"
 }

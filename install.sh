@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 
 # Define a function which rename a `target` file to `target.backup` if the file
 # exists and if it's a 'real' file, ie not a symlink
@@ -21,6 +21,22 @@ symlink() {
   fi
 }
 
+# Install zsh if it's not present
+if ! command -v zsh >/dev/null; then
+  echo "-----> Installing zsh..."
+  if [[ `uname` =~ "Darwin" ]]; then
+    brew install zsh
+  else
+    sudo apt install zsh -y
+  fi
+fi
+
+# Install oh-my-zsh if it's not present
+if [ ! -d "$HOME/.oh-my-zsh" ]; then
+  echo "-----> Installing oh-my-zsh..."
+  sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+fi
+
 # For all files `$name` in the present folder except `*.sh`, `README.md`, `settings.json`,
 # and `config`, backup the target file located at `~/.$name` and symlink `$name` to `~/.$name`
 for name in aliases gitconfig irbrc pryrc rspec zprofile zshrc; do
@@ -35,9 +51,15 @@ done
 CURRENT_DIR=`pwd`
 ZSH_PLUGINS_DIR="$HOME/.oh-my-zsh/custom/plugins"
 mkdir -p "$ZSH_PLUGINS_DIR" && cd "$ZSH_PLUGINS_DIR"
+# Check and install zsh-autosuggestions
+if [ ! -d "$ZSH_PLUGINS_DIR/zsh-autosuggestions" ]; then
+  echo "-----> Installing zsh plugin 'zsh-autosuggestions'..."
+  git clone https://github.com/zsh-users/zsh-autosuggestions
+fi
+
+# Check and install zsh-syntax-highlighting
 if [ ! -d "$ZSH_PLUGINS_DIR/zsh-syntax-highlighting" ]; then
   echo "-----> Installing zsh plugin 'zsh-syntax-highlighting'..."
-  git clone https://github.com/zsh-users/zsh-autosuggestions
   git clone https://github.com/zsh-users/zsh-syntax-highlighting
 fi
 cd "$CURRENT_DIR"
@@ -70,6 +92,10 @@ if [[ `uname` =~ "Darwin" ]]; then
 fi
 
 # Refresh the current terminal with the newly installed configuration
-exec zsh
+if command -v zsh >/dev/null 2>&1; then
+  exec zsh
+else
+  echo "zsh not found. Please install zsh to use the full configuration."
+fi
 
 echo "👌 Carry on with git setup!"
