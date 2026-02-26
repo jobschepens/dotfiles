@@ -61,9 +61,14 @@ export PATH="./bin:./node_modules/.bin:${PATH}:/usr/local/sbin"
 # Store your own aliases in the ~/.aliases file and load the here.
 [[ -f "$HOME/.aliases" ]] && source "$HOME/.aliases"
 
-# Encoding stuff for the terminal
-export LANG=en_US.UTF-8
-export LC_ALL=en_US.UTF-8
+# Encoding: fall back to C.UTF-8 if en_US.UTF-8 isn't generated on this system.
+if locale -a 2>/dev/null | grep -qi '^en_US\\.utf8$'; then
+  export LANG=en_US.UTF-8
+  export LC_ALL=en_US.UTF-8
+else
+  export LANG=C.UTF-8
+  export LC_ALL=C.UTF-8
+fi
 
 export BUNDLER_EDITOR=code
 export EDITOR=code
