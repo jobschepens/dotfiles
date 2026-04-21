@@ -2,3 +2,16 @@ Host *
   UseKeychain yes
   AddKeysToAgent yes
   IdentityFile ~/.ssh/id_ed25519
+
+Host ha
+  HostName 192.168.178.124
+  User root
+  Port 22
+  MACs hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,umac-128-etm@openssh.com
+  IdentityFile ~/.ssh/id_ed25519_codex
+
+Host proxmox
+  HostName 192.168.178.210
+  User jobschepens
+  Port 22
+  IdentityFile ~/.ssh/id_ed25519_codex
