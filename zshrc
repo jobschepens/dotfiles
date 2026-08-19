@@ -76,4 +76,10 @@ export EDITOR=code
 # Set ipdb as the default Python debugger
 export PYTHONBREAKPOINT=ipdb.set_trace
 
-. "$HOME/.local/bin/env"
+# Load environment variables from ~/.env file
+if [ -f "$HOME/.env" ]; then
+  set -a
+  source "$HOME/.env"
+  set +a
+fi
+export PATH="$HOME/.opencode/bin:$PATH"
