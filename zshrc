@@ -83,3 +83,4 @@ if [ -f "$HOME/.env" ]; then
   set +a
 fi
 export PATH="$HOME/.opencode/bin:$PATH"
+export PATH="$HOME/.local/bin:$PATH"
