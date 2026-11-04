@@ -4,8 +4,7 @@ read full_name
 echo "Type in your email address (the one used for your GitHub account): "
 read email
 
-# git config --global user.email "$email"
-git config --global user.email "@users.noreply.github.com"
+git config --global user.email "$email"
 git config --global user.name "$full_name"
 
 git add .

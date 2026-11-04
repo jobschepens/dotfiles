@@ -39,7 +39,9 @@ fi
 
 # For all files `$name` in the present folder except `*.sh`, `README.md`, `settings.json`,
 # and `config`, backup the target file located at `~/.$name` and symlink `$name` to `~/.$name`
-for name in aliases gitconfig irbrc pryrc rspec zprofile zshrc; do
+# NOTE: gitconfig is intentionally NOT symlinked here: ~/.gitconfig is managed by
+# chezmoi (dot_gitconfig.tmpl). Symlinking it would replace chezmoi's rendered file.
+for name in aliases irbrc pryrc rspec zprofile zshrc; do
   if [ ! -d "$name" ]; then
     target="$HOME/.$name"
     backup $target
