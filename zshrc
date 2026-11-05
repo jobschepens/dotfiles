@@ -83,6 +83,16 @@ if [ -f "$HOME/.env" ]; then
   set +a
 fi
 
+# Under WSL, pass SAIA_API_KEY through to Windows processes (opencode.exe,
+# codex.exe, claude) launched from this shell. Without this they inherit the
+# stale value from the Windows process environment instead of ~/.env.
+if grep -qi microsoft /proc/version 2>/dev/null; then
+  case ":${WSLENV:-}:" in
+    *:SAIA_API_KEY:*) ;;
+    *) export WSLENV="${WSLENV:+$WSLENV:}SAIA_API_KEY" ;;
+  esac
+fi
+
 # User binaries (chezmoi, etc.) — ~/.profile only covers login shells
 if [ -d "$HOME/bin" ] && [[ ":$PATH:" != *":$HOME/bin:"* ]]; then
   export PATH="$HOME/bin:$PATH"
