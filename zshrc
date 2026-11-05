@@ -82,5 +82,16 @@ if [ -f "$HOME/.env" ]; then
   source "$HOME/.env"
   set +a
 fi
-export PATH="$HOME/.opencode/bin:$PATH"
-export PATH="$HOME/.local/bin:$PATH"
+
+# User binaries (chezmoi, etc.) — ~/.profile only covers login shells
+if [ -d "$HOME/bin" ] && [[ ":$PATH:" != *":$HOME/bin:"* ]]; then
+  export PATH="$HOME/bin:$PATH"
+fi
+
+if [ -d "$HOME/.opencode/bin" ] && [[ ":$PATH:" != *":$HOME/.opencode/bin:"* ]]; then
+  export PATH="$HOME/.opencode/bin:$PATH"
+fi
+
+if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
+  export PATH="$HOME/.local/bin:$PATH"
+fi
