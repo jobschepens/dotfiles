@@ -20,7 +20,7 @@ fi
 
 case "$-" in
   *i*)
-    if [ -r /dev/tty ] && [ -f "$HOME/.ssh/id_ed25519_codex" ] && [ -f "$HOME/.ssh/id_ed25519_codex.pub" ]; then
+    if [ -t 0 ] && [ -r /dev/tty ] && [ -f "$HOME/.ssh/id_ed25519_codex" ] && [ -f "$HOME/.ssh/id_ed25519_codex.pub" ]; then
       ssh_public_key="$(cat "$HOME/.ssh/id_ed25519_codex.pub")"
       if ! SSH_AUTH_SOCK="$SSH_AUTH_SOCK" ssh-add -L 2>/dev/null | grep -Fqx "$ssh_public_key"; then
         SSH_AUTH_SOCK="$SSH_AUTH_SOCK" ssh-add "$HOME/.ssh/id_ed25519_codex" </dev/tty

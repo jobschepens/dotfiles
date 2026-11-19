@@ -2,12 +2,12 @@
 # so `ls file  # note` passes "note" to ls instead of ignoring it.
 setopt interactivecomments
 
-ZSH=$HOME/.oh-my-zsh
+ZSH="${ZSH:-$HOME/.oh-my-zsh}"
 
 # You can change the theme with another one from https://github.com/robbyrussell/oh-my-zsh/wiki/themes
 ZSH_THEME="robbyrussell"
 
-# Useful oh-my-zsh plugins for Le Wagon bootcamps
+# Useful oh-my-zsh plugins; ignored when oh-my-zsh is not installed
 plugins=(git gitfast last-working-dir common-aliases zsh-syntax-highlighting history-substring-search zsh-autosuggestions)
 
 # (macOS-only) Prevent Homebrew from reporting - https://github.com/Homebrew/brew/blob/master/docs/Analytics.md
@@ -16,14 +16,12 @@ export HOMEBREW_NO_ANALYTICS=1
 # Disable warning about insecure completion-dependent directories
 ZSH_DISABLE_COMPFIX=true
 
-# Actually load Oh-My-Zsh
-source "${ZSH}/oh-my-zsh.sh"
-unalias rm 2>/dev/null # No interactive rm by default (brought by plugins/common-aliases)
-unalias lt 2>/dev/null # we need `lt` for https://github.com/localtunnel/localtunnel
-
-# Load rbenv if installed (to manage your Ruby versions)
-export PATH="${HOME}/.rbenv/bin:${PATH}" # Needed for Linux/WSL
-type -a rbenv > /dev/null && eval "$(rbenv init -)"
+# Actually load Oh-My-Zsh when it is available
+if [ -d "$ZSH" ]; then
+  source "${ZSH}/oh-my-zsh.sh"
+  unalias rm 2>/dev/null # No interactive rm by default (brought by plugins/common-aliases)
+  unalias lt 2>/dev/null # we need `lt` for https://github.com/localtunnel/localtunnel
+fi
 
 # Load pyenv (to manage your Python versions)
 export PYENV_VIRTUALENV_DISABLE_PROMPT=1
@@ -57,9 +55,8 @@ load-nvmrc() {
 type -a nvm > /dev/null && add-zsh-hook chpwd load-nvmrc
 type -a nvm > /dev/null && load-nvmrc
 
-# Rails and Ruby uses the local `bin` folder to store binstubs.
-# So instead of running `bin/rails` like the doc says, just run `rails`
-# Same for `./node_modules/.bin` and nodejs
+# Rails and Ruby used the local `bin` folder for binstubs; keep the project-local
+# bins first for Node/Ruby projects that still use them.
 export PATH="./bin:./node_modules/.bin:${PATH}:/usr/local/sbin"
 
 # Store your own aliases in the ~/.aliases file and load the here.
@@ -74,11 +71,11 @@ else
   export LC_ALL=C.UTF-8
 fi
 
-export BUNDLER_EDITOR=code
-export EDITOR=code
-
-# Set ipdb as the default Python debugger
-export PYTHONBREAKPOINT=ipdb.set_trace
+if command -v code >/dev/null 2>&1; then
+  export EDITOR=code
+else
+  export EDITOR="${EDITOR:-vim}"
+fi
 
 # Load environment variables from ~/.env file
 if [ -f "$HOME/.env" ]; then
@@ -87,14 +84,16 @@ if [ -f "$HOME/.env" ]; then
   set +a
 fi
 
-# Under WSL, pass SAIA_API_KEY through to Windows processes (opencode.exe,
-# codex.exe, claude) launched from this shell. Without this they inherit the
-# stale value from the Windows process environment instead of ~/.env.
+# Under WSL, pass the AI provider keys through to Windows processes
+# (opencode.exe, codex.exe, claude) launched from this shell. Without this they
+# inherit the stale value from the Windows process environment instead of ~/.env.
 if grep -qi microsoft /proc/version 2>/dev/null; then
-  case ":${WSLENV:-}:" in
-    *:SAIA_API_KEY:*) ;;
-    *) export WSLENV="${WSLENV:+$WSLENV:}SAIA_API_KEY" ;;
-  esac
+  for var in SAIA_API_KEY BLABLADOR_API_KEY KICONNECT_API_KEY; do
+    case ":${WSLENV:-}:" in
+      *":$var:"*) ;;
+      *) export WSLENV="${WSLENV:+$WSLENV:}$var" ;;
+    esac
+  done
 fi
 
 # User binaries (chezmoi, etc.) — ~/.profile only covers login shells

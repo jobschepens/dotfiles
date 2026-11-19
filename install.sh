@@ -1,103 +1,53 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# Link the shell files in this repository into $HOME and install oh-my-zsh.
+# No sudo, no package installation, no SSH or VS Code edits.
+set -euo pipefail
 
-# Define a function which rename a `target` file to `target.backup` if the file
-# exists and if it's a 'real' file, ie not a symlink
+repo_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+
 backup() {
-  target=$1
-  if [ -e "$target" ]; then
-    if [ ! -L "$target" ]; then
-      mv "$target" "$target.backup"
-      echo "-----> Moved your old $target config file to $target.backup"
-    fi
+  local target="$1"
+  if [ -e "$target" ] && [ ! -L "$target" ]; then
+    mv "$target" "$target.backup"
+    echo "Backed up $target -> $target.backup"
   fi
 }
 
-symlink() {
-  file=$1
-  link=$2
-  if [ ! -e "$link" ]; then
-    echo "-----> Symlinking your new $link"
-    ln -s $file $link
-  fi
+link() {
+  local name="$1" target="$HOME/.$1"
+  backup "$target"
+  ln -sfn "$repo_dir/$name" "$target"
+  echo "Linked $target -> $repo_dir/$name"
 }
 
-# Install zsh if it's not present
-if ! command -v zsh >/dev/null; then
-  echo "-----> Installing zsh..."
-  if [[ `uname` =~ "Darwin" ]]; then
-    brew install zsh
-  else
-    sudo apt install zsh -y
-  fi
-fi
+command -v zsh >/dev/null 2>&1 || {
+  echo "zsh is not installed. Install it with your package manager, then rerun this script." >&2
+  exit 1
+}
 
-# Install oh-my-zsh if it's not present
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
-  echo "-----> Installing oh-my-zsh..."
-  sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+  if ! command -v curl >/dev/null 2>&1; then
+    echo "curl is required to install oh-my-zsh." >&2
+    exit 1
+  fi
+  echo "Installing oh-my-zsh..."
+  RUNZSH=no CHSH=no KEEP_ZSHRC=yes \
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 fi
 
-# For all files `$name` in the present folder except `*.sh`, `README.md`, `settings.json`,
-# and `config`, backup the target file located at `~/.$name` and symlink `$name` to `~/.$name`
-# NOTE: gitconfig is intentionally NOT symlinked here: ~/.gitconfig is managed by
-# chezmoi (dot_gitconfig.tmpl). Symlinking it would replace chezmoi's rendered file.
-for name in aliases irbrc pryrc rspec zprofile zshrc; do
-  if [ ! -d "$name" ]; then
-    target="$HOME/.$name"
-    backup $target
-    symlink $PWD/$name $target
+# These plugins are bundled with current oh-my-zsh; clone only for older setups.
+zsh_custom="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+for plugin in zsh-autosuggestions zsh-syntax-highlighting; do
+  if [ ! -d "$HOME/.oh-my-zsh/plugins/$plugin" ] && [ ! -d "$zsh_custom/plugins/$plugin" ]; then
+    echo "Installing oh-my-zsh plugin $plugin..."
+    mkdir -p "$zsh_custom/plugins"
+    git clone --depth=1 "https://github.com/zsh-users/$plugin" "$zsh_custom/plugins/$plugin"
   fi
 done
 
-# Install zsh-syntax-highlighting plugin
-CURRENT_DIR=`pwd`
-ZSH_PLUGINS_DIR="$HOME/.oh-my-zsh/custom/plugins"
-mkdir -p "$ZSH_PLUGINS_DIR" && cd "$ZSH_PLUGINS_DIR"
-# Check and install zsh-autosuggestions
-if [ ! -d "$ZSH_PLUGINS_DIR/zsh-autosuggestions" ]; then
-  echo "-----> Installing zsh plugin 'zsh-autosuggestions'..."
-  git clone https://github.com/zsh-users/zsh-autosuggestions
-fi
-
-# Check and install zsh-syntax-highlighting
-if [ ! -d "$ZSH_PLUGINS_DIR/zsh-syntax-highlighting" ]; then
-  echo "-----> Installing zsh plugin 'zsh-syntax-highlighting'..."
-  git clone https://github.com/zsh-users/zsh-syntax-highlighting
-fi
-cd "$CURRENT_DIR"
-
-# Symlink VS Code settings and keybindings to the present `settings.json` and `keybindings.json` files
-# If it's a macOS
-if [[ `uname` =~ "Darwin" ]]; then
-  CODE_PATH=~/Library/Application\ Support/Code/User
-# Else, it's a Linux
-else
-  CODE_PATH=~/.config/Code/User
-  # If this folder doesn't exist, it's a WSL
-  if [ ! -e $CODE_PATH ]; then
-    CODE_PATH=~/.vscode-server/data/Machine
-  fi
-fi
-
-for name in settings.json keybindings.json; do
-  target="$CODE_PATH/$name"
-  backup $target
-  symlink $PWD/$name $target
+for name in zshrc zprofile aliases; do
+  link "$name"
 done
 
-# Symlink SSH config file to the present `config` file for macOS and add SSH passphrase to the keychain
-if [[ `uname` =~ "Darwin" ]]; then
-  target=~/.ssh/config
-  backup $target
-  symlink $PWD/config $target
-  ssh-add --apple-use-keychain ~/.ssh/id_ed25519
-fi
-
-# Refresh the current terminal with the newly installed configuration
-if command -v zsh >/dev/null 2>&1; then
-  exec zsh
-else
-  echo "zsh not found. Please install zsh to use the full configuration."
-fi
-
-echo "👌 Carry on with git setup!"
+echo
+echo "Done. Run 'exec zsh' or open a new terminal."
